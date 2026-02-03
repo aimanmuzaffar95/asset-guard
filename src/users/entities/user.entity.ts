@@ -1,6 +1,7 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserRole } from "../enums/user-roles.enum";
 import { Exclude } from "class-transformer";
+import { AssetAssignmentEntity } from "../../assets/entities/asset-assignment.entity";
 
 @Entity('users')
 export class UserEntity {
@@ -21,10 +22,13 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 255 })
     passwordHash: string;
 
-    @Column({ 
-        type: 'enum', 
-        enum: UserRole, 
-        default: UserRole.STAFF 
+    @Column({
+        type: 'enum',
+        enum: UserRole,
+        default: UserRole.STAFF
     })
     role: UserRole;
+
+    @OneToMany(() => AssetAssignmentEntity, assignment => assignment.user)
+    assignments: AssetAssignmentEntity[];
 }

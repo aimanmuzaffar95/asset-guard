@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 import { AssetType } from "../enum/asset-type.enum";
+import { AssetAssignmentEntity } from "./asset-assignment.entity";
 
 @Entity('assets')
 @Unique(['serialNumber'])
@@ -24,5 +25,8 @@ export class AssetEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => AssetAssignmentEntity, assignment => assignment.asset)
+  assignments: AssetAssignmentEntity[];
 }
 
