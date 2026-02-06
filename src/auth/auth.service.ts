@@ -15,7 +15,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private readonly jwtService: JwtService,
-) {}
+  ) { }
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -48,7 +48,7 @@ export class AuthService {
 
     return {
       refreshToken: accessToken,
-      tokenExpires: 1440,
+      tokenExpires: Number(process.env.JWT_EXPIRES_IN || 3600),
       user: user,
     };
   }
