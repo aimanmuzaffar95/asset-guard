@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   ParseUUIDPipe,
+  Req,
 } from '@nestjs/common';
 import { AssetsService } from './assets.service';
 import { CreateAssetDto } from './dtos/create-asset.dto';
@@ -14,11 +15,17 @@ import { UpdateAssetDto } from './dtos/update-asset.dto';
 import { AssetEntity } from './entities/asset.entity';
 import { AssignAssetDto } from './dtos/assign-asset.dto';
 import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
-import { Admin } from '../auth/decorators/roles.decorator';
+import { Admin, Staff } from '../auth/decorators/roles.decorator';
 
 @Controller('assets')
 export class AssetsController {
   constructor(private readonly assetsService: AssetsService) { }
+
+  @Staff()
+  @Get('me')
+  async getMyAssets(@Req() req: any): Promise<AssetAssignmentEntity[]> {
+    return this.assetsService.getAssetsByUser(req.user.sub);
+  }
 
   @Admin()
   @Post()
