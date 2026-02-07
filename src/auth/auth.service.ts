@@ -9,6 +9,8 @@ import { LoginResponseDto } from './dtos/login-response.dto';
 import { UsersService } from 'src/users/users.service';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from 'src/users/dtos/create-user.dto';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -51,5 +53,9 @@ export class AuthService {
       tokenExpires: Number(process.env.JWT_EXPIRES_IN || 3600),
       user: user,
     };
+  }
+
+  async register(dto: CreateUserDto): Promise<UserEntity> {
+    return await this.usersService.createUser(dto);
   }
 }
