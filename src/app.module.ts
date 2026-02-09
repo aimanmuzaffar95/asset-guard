@@ -19,26 +19,16 @@ import { RolesGuard } from './auth/guards/roles.guard';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const url = config.get<string>('SUPABASE_DATABASE_URL');
-        const env = process.env.NODE_ENV;
-        const useSupabase = (env === 'production' || env === 'staging') && url;
 
         return {
           type: 'postgres',
-          ...(useSupabase ? { url } : {
-            host: config.get<string>('DB_HOST'),
-            port: Number(config.get('DB_PORT')),
-            username: config.get<string>('DB_USER'),
-            password: config.get<string>('DB_PASSWORD'),
-            database: config.get<string>('DB_NAME'),
-          }),
+          url: url,
           autoLoadEntities: true,
           synchronize: false,
           migrationsRun: true,
           migrations: ['dist/migrations/*.js'],
           logging: true,
-          ssl: useSupabase
-            ? { rejectUnauthorized: false }
-            : false,
+          ssl: { rejectUnauthorized: false },
         };
       },
     }),

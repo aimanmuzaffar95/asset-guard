@@ -6,11 +6,11 @@ import {
 } from '@nestjs/common';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { LoginResponseDto } from './dtos/login-response.dto';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from 'src/users/dtos/create-user.dto';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
