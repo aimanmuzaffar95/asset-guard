@@ -19,11 +19,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get<string>('DB_HOST'),
-        port: Number(config.get('DB_PORT')),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
+        url: config.get<string>('SUPABASE_DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: false,
         migrationsRun: true,
