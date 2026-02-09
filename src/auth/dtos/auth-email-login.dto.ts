@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty } from "class-validator";
 import { Transform } from 'class-transformer';
-import { lowerCaseTransformer } from "src/utils/lower-case.transformation";
+import { lowerCaseTransformer } from "../../utils/lower-case.transformation";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class AuthEmailLoginDto {

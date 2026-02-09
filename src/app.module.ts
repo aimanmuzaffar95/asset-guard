@@ -17,15 +17,20 @@ import { RolesGuard } from './auth/guards/roles.guard';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.get<string>('SUPABASE_DATABASE_URL'),
-        autoLoadEntities: true,
-        synchronize: false,
-        migrationsRun: true,
-        migrations: ['dist/migrations/*.js'],
-        logging: true,
-      }),
+      useFactory: (config: ConfigService) => {
+        const url = config.get<string>('SUPABASE_DATABASE_URL');
+
+        return {
+          type: 'postgres',
+          url: url,
+          autoLoadEntities: true,
+          synchronize: false,
+          migrationsRun: true,
+          migrations: ['dist/migrations/*.js'],
+          logging: true,
+          ssl: { rejectUnauthorized: false },
+        };
+      },
     }),
     UsersModule,
     AuthModule,
