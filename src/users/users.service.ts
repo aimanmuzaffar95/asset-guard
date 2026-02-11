@@ -16,7 +16,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
-  ) {}
+  ) { }
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     const existing = await this.userRepo.findOne({
@@ -50,5 +50,9 @@ export class UsersService {
     });
 
     return entity;
+  }
+
+  async findAll(): Promise<UserEntity[]> {
+    return await this.userRepo.find();
   }
 }
