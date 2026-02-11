@@ -6,8 +6,8 @@ config();
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.SUPABASE_DATABASE_URL,
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/migrations/*.js'],
+  entities: [__dirname + '/**/*.entity.{js,ts}'],
+  migrations: [__dirname + '/migrations/*.{js,ts}'],
   synchronize: false,
   ssl: {
     rejectUnauthorized: false,

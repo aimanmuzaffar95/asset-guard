@@ -26,7 +26,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
           autoLoadEntities: true,
           synchronize: false,
           migrationsRun: true,
-          migrations: ['dist/migrations/*.js'],
+          migrations: [__dirname + '/migrations/*.{js,ts}'],
           logging: true,
           ssl: { rejectUnauthorized: false },
         };
@@ -45,4 +45,4 @@ import { RolesGuard } from './auth/guards/roles.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
