@@ -3,21 +3,19 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-} from "@nestjs/common"
-import { Observable } from "rxjs"
-import { map } from "rxjs/operators"
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import type { Request, Response } from 'express';
 
 @Injectable()
 export class SuccessResponseInterceptor implements NestInterceptor {
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Observable<any> {
-    const request = context.switchToHttp().getRequest()
-    const response = context.switchToHttp().getResponse()
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
 
     return next.handle().pipe(
-      map((data) => {
+      map((data: unknown) => {
         return {
           success: true,
           data,
@@ -27,8 +25,8 @@ export class SuccessResponseInterceptor implements NestInterceptor {
             method: request.method,
             timestamp: new Date().toISOString(),
           },
-        }
+        };
       }),
-    )
+    );
   }
 }

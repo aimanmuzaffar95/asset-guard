@@ -7,7 +7,7 @@ import {
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { LoginResponseDto } from './dtos/login-response.dto';
 import { UsersService } from '../users/users.service';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
@@ -17,7 +17,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);

@@ -9,7 +9,12 @@ import {
   ParseUUIDPipe,
   Req,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AssetsService } from './assets.service';
 import { CreateAssetDto } from './dtos/create-asset.dto';
 import { UpdateAssetDto } from './dtos/update-asset.dto';
@@ -17,18 +22,29 @@ import { AssetEntity } from './entities/asset.entity';
 import { AssignAssetDto } from './dtos/assign-asset.dto';
 import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { Admin, Staff } from '../auth/decorators/roles.decorator';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    sub: string;
+    email: string;
+    role: string;
+  };
+}
 
 @ApiTags('Assets')
 @ApiBearerAuth()
 @Controller('assets')
 export class AssetsController {
-  constructor(private readonly assetsService: AssetsService) { }
+  constructor(private readonly assetsService: AssetsService) {}
 
   @ApiOperation({ summary: 'Get assets assigned to the current user' })
   @ApiResponse({ status: 200, type: [AssetAssignmentEntity] })
   @Staff()
   @Get('me')
-  async getMyAssets(@Req() req: any): Promise<AssetAssignmentEntity[]> {
+  async getMyAssets(
+    @Req() req: RequestWithUser,
+  ): Promise<AssetAssignmentEntity[]> {
     return this.assetsService.getAssetsByUser(req.user.sub);
   }
 
@@ -52,7 +68,9 @@ export class AssetsController {
   @ApiResponse({ status: 200, type: [AssetAssignmentEntity] })
   @Admin()
   @Get('user/:userId')
-  getAssetsByUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<AssetAssignmentEntity[]> {
+  getAssetsByUser(
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<AssetAssignmentEntity[]> {
     return this.assetsService.getAssetsByUser(userId);
   }
 
@@ -79,7 +97,9 @@ export class AssetsController {
   @ApiResponse({ status: 200, description: 'Asset deleted successfully' })
   @Admin()
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ success: true }> {
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ success: true }> {
     await this.assetsService.remove(id);
     return { success: true };
   }
@@ -99,7 +119,9 @@ export class AssetsController {
   @ApiResponse({ status: 200, type: AssetAssignmentEntity })
   @Admin()
   @Patch(':id/unassign')
-  unassignAsset(@Param('id', ParseUUIDPipe) id: string): Promise<AssetAssignmentEntity> {
+  unassignAsset(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<AssetAssignmentEntity> {
     return this.assetsService.unassignAsset(id);
   }
 
@@ -107,7 +129,9 @@ export class AssetsController {
   @ApiResponse({ status: 200, type: [AssetAssignmentEntity] })
   @Admin()
   @Get(':id/history')
-  getAssignmentHistory(@Param('id', ParseUUIDPipe) id: string): Promise<AssetAssignmentEntity[]> {
+  getAssignmentHistory(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<AssetAssignmentEntity[]> {
     return this.assetsService.getAssignmentHistory(id);
   }
 }
