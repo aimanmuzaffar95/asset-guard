@@ -52,7 +52,13 @@ export class UsersService {
     return entity;
   }
 
-  async findAll(): Promise<UserEntity[]> {
-    return await this.userRepo.find();
+  async findAll(page: number): Promise<UserEntity[]> {
+    const take = 10;
+    const skip = (page - 1) * take;
+
+    return await this.userRepo.find({
+      skip,
+      take,
+    });
   }
 }
