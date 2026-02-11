@@ -10,7 +10,8 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 - **User Management**: Registration and paginated user lists for administrators.
 - **API Documentation**: Interactive Swagger UI available at `/docs`.
 - **Quality Control**: Strict ESLint configuration with automated unused-import removal.
-- **CI/CD**: GitHub Action to run linting on every pull request.
+- **Automated Testing**: 35 unit tests covering core services, guards, and shared infrastructure.
+- **CI/CD**: GitHub Actions to run linting and unit tests on every pull request.
 
 ## 🛠️ Prerequisites
 
@@ -66,6 +67,15 @@ Start the application and navigate to:
 ```bash
 # Run linter and fix issues
 $ npm run lint
+```
+
+### Unit Testing
+```bash
+# Run all unit tests
+$ npm run test
+
+# Run tests with coverage report
+$ npm run test:cov
 ```
 
 ## 🛡️ License
