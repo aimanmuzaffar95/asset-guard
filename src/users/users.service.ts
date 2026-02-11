@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  HttpStatus,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -42,7 +37,7 @@ export class UsersService {
     return await this.userRepo.save(user);
   }
 
-  async findByEmail(email: UserEntity['email']): Promise<UserEntity | null> {
+  async findByEmail(email: string): Promise<UserEntity | null> {
     if (!email) return null;
 
     const entity = await this.userRepo.findOne({
@@ -54,7 +49,8 @@ export class UsersService {
 
   async findAll(page: number): Promise<UserEntity[]> {
     const take = 10;
-    const skip = (page - 1) * take;
+    const safePage = Math.max(1, page);
+    const skip = (safePage - 1) * take;
 
     return await this.userRepo.find({
       skip,

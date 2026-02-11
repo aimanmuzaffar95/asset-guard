@@ -1,7 +1,15 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
-import { AssetType } from "../enum/asset-type.enum";
-import { AssetAssignmentEntity } from "./asset-assignment.entity";
-import { ApiProperty } from "@nestjs/swagger";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+  UpdateDateColumn,
+} from 'typeorm';
+import { AssetType } from '../enum/asset-type.enum';
+import { AssetAssignmentEntity } from './asset-assignment.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('assets')
 @Unique(['serialNumber'])
@@ -33,6 +41,6 @@ export class AssetEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => AssetAssignmentEntity, assignment => assignment.asset)
+  @OneToMany(() => AssetAssignmentEntity, (assignment) => assignment.asset)
   assignments: AssetAssignmentEntity[];
 }

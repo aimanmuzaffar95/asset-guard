@@ -9,11 +9,14 @@ import { UserEntity } from '../users/entities/user.entity';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-
-  constructor(private readonly service: AuthService) { }
+  constructor(private readonly service: AuthService) {}
 
   @ApiOperation({ summary: 'Login with email and password' })
-  @ApiResponse({ status: 201, description: 'Login successful', type: LoginResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Login successful',
+    type: LoginResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Post('login')
   public login(@Body() loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
@@ -21,7 +24,11 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'Registration successful', type: UserEntity })
+  @ApiResponse({
+    status: 201,
+    description: 'Registration successful',
+    type: UserEntity,
+  })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   @Post('register')
   public register(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {

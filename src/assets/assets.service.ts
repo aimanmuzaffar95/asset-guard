@@ -21,7 +21,7 @@ export class AssetsService {
     private readonly assignmentRepo: Repository<AssetAssignmentEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
-  ) { }
+  ) {}
 
   async create(dto: CreateAssetDto): Promise<AssetEntity> {
     const existing = await this.assetRepo.findOne({
@@ -29,7 +29,9 @@ export class AssetsService {
     });
 
     if (existing) {
-      throw new ConflictException('Asset with this serial number already exists');
+      throw new ConflictException(
+        'Asset with this serial number already exists',
+      );
     }
 
     const asset = this.assetRepo.create(dto);
@@ -64,7 +66,10 @@ export class AssetsService {
     await this.assetRepo.remove(asset);
   }
 
-  async assignAsset(id: string, userId: string): Promise<AssetAssignmentEntity> {
+  async assignAsset(
+    id: string,
+    userId: string,
+  ): Promise<AssetAssignmentEntity> {
     const asset = await this.findOne(id);
     const user = await this.userRepo.findOneBy({ id: userId });
 

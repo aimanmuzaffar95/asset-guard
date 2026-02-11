@@ -6,7 +6,7 @@ import { AllExceptionsFilter } from './common/exception-filters/all-exceptions-f
 import { SuccessResponseInterceptor } from './common/interceptors/success-response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(
@@ -17,13 +17,11 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new SuccessResponseInterceptor())
+  app.useGlobalInterceptors(new SuccessResponseInterceptor());
 
-  app.useGlobalFilters(new AllExceptionsFilter())
+  app.useGlobalFilters(new AllExceptionsFilter());
 
-  app.useGlobalInterceptors(
-    new ClassSerializerInterceptor(app.get(Reflector)),
-  );
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
     .setTitle('Asset Guard API')
@@ -48,4 +46,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

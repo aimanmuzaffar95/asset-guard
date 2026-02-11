@@ -1,0 +1,16 @@
+
+> asset-guard@0.0.1 lint
+> eslint "{src,apps,libs,test}/**/*.ts" --fix
+
+
+/Users/aiman.muzaffar/Desktop/practice/asset-guard copy/src/auth/guards/roles.guard.ts
+  48:13  error  Unsafe assignment of an `any` value                                       @typescript-eslint/no-unsafe-assignment
+  49:7   error  Unsafe assignment of an `any` value                                       @typescript-eslint/no-unsafe-assignment
+  51:46  error  Unsafe argument of type `any` assigned to a parameter of type `UserRole`  @typescript-eslint/no-unsafe-argument
+  51:54  error  Unsafe member access .role on an `any` value                              @typescript-eslint/no-unsafe-member-access
+
+/Users/aiman.muzaffar/Desktop/practice/asset-guard copy/src/auth/strategy/jwt.strategy.ts
+  14:3  error  Async method 'validate' has no 'await' expression  @typescript-eslint/require-await
+
+✖ 5 problems (5 errors, 0 warnings)
+
