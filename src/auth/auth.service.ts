@@ -19,7 +19,7 @@ export class AuthService {
     private usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -48,11 +48,20 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: (process.env.JWT_EXPIRES_IN || '1h') as any,
+    });
+
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
+    });
 
     return {
-      refreshToken: accessToken,
-      tokenExpires: Number(process.env.JWT_EXPIRES_IN || 3600),
+      accessToken,
+      refreshToken,
+      tokenExpires: isNaN(Number(process.env.JWT_EXPIRES_IN))
+        ? 86400
+        : Number(process.env.JWT_EXPIRES_IN),
       user: user,
     };
   }
