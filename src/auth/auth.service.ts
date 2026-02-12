@@ -11,13 +11,15 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly storageService: StorageService,
+  ) { }
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -55,7 +57,20 @@ export class AuthService {
     };
   }
 
-  async register(dto: CreateUserDto): Promise<UserEntity> {
-    return await this.usersService.createUser(dto);
+  async register(
+    dto: CreateUserDto,
+    file?: Express.Multer.File,
+  ): Promise<UserEntity> {
+    let profileImageUrl: string | undefined;
+
+    if (file) {
+      profileImageUrl = await this.storageService.uploadFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+      );
+    }
+
+    return await this.usersService.createUser(dto, profileImageUrl);
   }
 }

@@ -41,6 +41,14 @@ export class UserEntity {
   })
   role: UserRole;
 
+  @ApiProperty({
+    example: 'https://example.com/profile.jpg',
+    required: false,
+    nullable: true,
+  })
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  profileImageUrl: string | null;
+
   @OneToMany(() => AssetAssignmentEntity, (assignment) => assignment.user)
   assignments: AssetAssignmentEntity[];
 }
