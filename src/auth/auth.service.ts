@@ -8,7 +8,7 @@ import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { LoginResponseDto } from './dtos/login-response.dto';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
@@ -48,11 +48,22 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: (process.env.JWT_EXPIRES_IN ||
+        '1h') as JwtSignOptions['expiresIn'],
+    });
+
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
+        '7d') as JwtSignOptions['expiresIn'],
+    });
 
     return {
-      refreshToken: accessToken,
-      tokenExpires: Number(process.env.JWT_EXPIRES_IN || 3600),
+      accessToken,
+      refreshToken,
+      tokenExpires: isNaN(Number(process.env.JWT_EXPIRES_IN))
+        ? 86400
+        : Number(process.env.JWT_EXPIRES_IN),
       user: user,
     };
   }

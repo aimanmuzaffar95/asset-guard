@@ -75,8 +75,9 @@ describe('AuthService', () => {
       const result = await service.validateLogin(loginDto);
 
       expect(result).toEqual({
+        accessToken: 'access-token',
         refreshToken: 'access-token',
-        tokenExpires: 3600,
+        tokenExpires: 86400,
         user: mockUser,
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method

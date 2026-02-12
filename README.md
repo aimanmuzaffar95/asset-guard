@@ -39,7 +39,8 @@ Create a `.env` file in the root directory and add the following variables:
 ```env
 DATABASE_URL=your_postgresql_url
 JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=3600
+JWT_EXPIRES_IN=1d
+JWT_REFRESH_EXPIRES_IN=7d
 PORT=3000
 
 # Supabase Storage Configuration
