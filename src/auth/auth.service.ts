@@ -19,7 +19,7 @@ export class AuthService {
     private usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);

@@ -9,6 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../users/enums/user-roles.enum';
 import { UserEntity } from '../users/entities/user.entity';
+import { StorageService } from '../storage/storage.service';
 
 jest.mock('bcrypt');
 
@@ -24,6 +25,9 @@ describe('AuthService', () => {
     lastName: 'Doe',
     passwordHash: 'hashed-password',
     role: UserRole.STAFF,
+    profileImageUrl: null,
+    profileImageKey: null,
+    assignments: [],
   } as UserEntity;
 
   beforeEach(async () => {
@@ -41,6 +45,12 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn(),
+          },
+        },
+        {
+          provide: StorageService,
+          useValue: {
+            uploadFile: jest.fn(),
           },
         },
       ],
@@ -120,7 +130,10 @@ describe('AuthService', () => {
 
       expect(result).toEqual(mockUser);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(usersService.createUser).toHaveBeenCalledWith(createUserDto);
+      expect(usersService.createUser).toHaveBeenCalledWith(
+        createUserDto,
+        undefined,
+      );
     });
   });
 });

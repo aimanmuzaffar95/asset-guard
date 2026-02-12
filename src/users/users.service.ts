@@ -11,9 +11,12 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
-  ) { }
+  ) {}
 
-  async createUser(dto: CreateUserDto, profileImageUrl?: string): Promise<UserEntity> {
+  async createUser(
+    dto: CreateUserDto,
+    profileImageUrl?: string,
+  ): Promise<UserEntity> {
     const existing = await this.userRepo.findOne({
       where: { email: dto.email },
     });

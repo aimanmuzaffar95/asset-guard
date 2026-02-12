@@ -34,7 +34,8 @@ export class CreateUserDto {
   @ApiPropertyOptional({
     type: 'string',
     format: 'binary',
-    description: 'Profile image file (optional, max 10MB, jpg/jpeg/png/gif/webp)',
+    description:
+      'Profile image file (optional, max 10MB, jpg/jpeg/png/gif/webp)',
   })
   @IsOptional()
   profileImage?: Express.Multer.File;

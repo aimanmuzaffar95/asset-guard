@@ -27,4 +27,4 @@ import { StorageModule } from '../storage/storage.module';
   controllers: [AuthController],
   exports: [JwtModule, AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
