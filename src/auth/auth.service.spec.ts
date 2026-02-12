@@ -45,6 +45,7 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn(),
+            verifyAsync: jest.fn(),
           },
         },
         {
@@ -134,6 +135,49 @@ describe('AuthService', () => {
       expect(usersService.createUser).toHaveBeenCalledWith(
         createUserDto,
         undefined,
+      );
+    });
+  });
+
+  describe('refreshToken', () => {
+    it('should return new tokens when refresh token is valid', async () => {
+      const refreshDto = { refreshToken: 'valid-refresh-token' };
+      jwtService.verifyAsync.mockResolvedValue({ email: 'test@example.com' });
+      usersService.findByEmail.mockResolvedValue(mockUser);
+      jwtService.signAsync.mockResolvedValue('new-token');
+
+      const result = await service.refreshToken(refreshDto);
+
+      expect(result).toEqual({
+        accessToken: 'new-token',
+        refreshToken: 'new-token',
+        tokenExpires: 86400,
+        user: mockUser,
+      });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith(
+        'valid-refresh-token',
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(usersService.findByEmail).toHaveBeenCalledWith('test@example.com');
+    });
+
+    it('should throw UnauthorizedException when token is invalid', async () => {
+      const refreshDto = { refreshToken: 'invalid-token' };
+      jwtService.verifyAsync.mockRejectedValue(new Error('Invalid token'));
+
+      await expect(service.refreshToken(refreshDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException when user not found', async () => {
+      const refreshDto = { refreshToken: 'valid-token' };
+      jwtService.verifyAsync.mockResolvedValue({ email: 'test@example.com' });
+      usersService.findByEmail.mockResolvedValue(null);
+
+      await expect(service.refreshToken(refreshDto)).rejects.toThrow(
+        UnauthorizedException,
       );
     });
   });

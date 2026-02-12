@@ -14,6 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
+import { AuthRefreshDto } from './dtos/auth-refresh.dto';
 import { LoginResponseDto } from './dtos/login-response.dto';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
@@ -34,6 +35,20 @@ export class AuthController {
   @Post('login')
   public login(@Body() loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     return this.service.validateLogin(loginDto);
+  }
+
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({
+    status: 201,
+    description: 'Token refresh successful',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  @Post('refresh')
+  public refresh(
+    @Body() refreshDto: AuthRefreshDto,
+  ): Promise<LoginResponseDto> {
+    return this.service.refreshToken(refreshDto);
   }
 
   @ApiOperation({ summary: 'Register a new user' })

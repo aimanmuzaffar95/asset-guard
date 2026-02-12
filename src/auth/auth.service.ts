@@ -12,6 +12,8 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
+import { UserRole } from '../users/enums/user-roles.enum';
+import { AuthRefreshDto } from './dtos/auth-refresh.dto';
 
 @Injectable()
 export class AuthService {
@@ -66,6 +68,51 @@ export class AuthService {
         : Number(process.env.JWT_EXPIRES_IN),
       user: user,
     };
+  }
+
+  async refreshToken(dto: AuthRefreshDto): Promise<LoginResponseDto> {
+    try {
+      const payload = (await this.jwtService.verifyAsync(
+        dto.refreshToken,
+      )) as unknown as {
+        email: string;
+        sub: string;
+        role: UserRole;
+      };
+
+      const user = await this.usersService.findByEmail(payload.email);
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const newPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+
+      const accessToken = await this.jwtService.signAsync(newPayload, {
+        expiresIn: (process.env.JWT_EXPIRES_IN ||
+          '1h') as JwtSignOptions['expiresIn'],
+      });
+
+      const refreshToken = await this.jwtService.signAsync(newPayload, {
+        expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
+          '7d') as JwtSignOptions['expiresIn'],
+      });
+
+      return {
+        accessToken,
+        refreshToken,
+        tokenExpires: isNaN(Number(process.env.JWT_EXPIRES_IN))
+          ? 86400
+          : Number(process.env.JWT_EXPIRES_IN),
+        user: user,
+      };
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   async register(
