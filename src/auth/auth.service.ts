@@ -8,7 +8,7 @@ import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { LoginResponseDto } from './dtos/login-response.dto';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
@@ -19,7 +19,7 @@ export class AuthService {
     private usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -49,11 +49,13 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: (process.env.JWT_EXPIRES_IN || '1h') as any,
+      expiresIn: (process.env.JWT_EXPIRES_IN ||
+        '1h') as JwtSignOptions['expiresIn'],
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
+        '7d') as JwtSignOptions['expiresIn'],
     });
 
     return {
