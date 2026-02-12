@@ -5,6 +5,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
     UsersModule,
+    StorageModule,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { UserRole } from '../enums/user-roles.enum';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'John' })
@@ -30,4 +30,13 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @ApiPropertyOptional({
+    type: 'string',
+    format: 'binary',
+    description:
+      'Profile image file (optional, max 10MB, jpg/jpeg/png/gif/webp)',
+  })
+  @IsOptional()
+  profileImage?: Express.Multer.File;
 }

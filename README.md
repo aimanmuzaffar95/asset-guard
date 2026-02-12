@@ -6,6 +6,7 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 
 - **Asset Management**: Full CRUD operations for assets.
 - **Asset Assignment**: Link assets to users with history tracking.
+- **File Uploads**: Secure profile image upload using Supabase Storage.
 - **Role-Based Access Control**: Secure endpoints with `@Admin` and `@Staff` decorators.
 - **User Management**: Registration and paginated user lists for administrators.
 - **API Documentation**: Interactive Swagger UI available at `/docs`.
@@ -17,6 +18,7 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 
 - **Node.js**: Version 20 or higher.
 - **Database**: PostgreSQL (Supabase recommended).
+- **Storage**: Supabase Storage (S3-compatible bucket).
 - **Package Manager**: npm.
 
 ## ⚙️ Setup Instructions
@@ -39,9 +41,20 @@ DATABASE_URL=your_postgresql_url
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=3600
 PORT=3000
+
+# Supabase Storage Configuration
+SUPABASE_STORAGE_ENDPOINT=https://your-project-ref.storage.supabase.co/storage/v1/s3
+SUPABASE_STORAGE_REGION=your-region
+SUPABASE_STORAGE_BUCKET=your-bucket-name
+SUPABASE_STORAGE_ACCESS_KEY_ID=your-access-key
+SUPABASE_STORAGE_SECRET_ACCESS_KEY=your-secret-key
 ```
 
-### 4. Database Migrations
+### 4. Configure Supabase Storage
+1. Create a new bucket named `asset-guard` (or update `SUPABASE_STORAGE_BUCKET` in `.env`).
+2. **Important**: Set the bucket to **Public** to allow profile image access.
+
+### 5. Database Migrations
 Ensure your database is accessible. The application uses TypeORM with `synchronize: true` for development (defined in `AppModule`).
 
 ## 🏃 Running the Application
