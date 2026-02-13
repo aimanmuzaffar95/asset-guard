@@ -1,8 +1,6 @@
 import {
-  HttpStatus,
   Injectable,
   UnauthorizedException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { LoginResponseDto } from './dtos/login-response.dto';
@@ -27,12 +25,7 @@ export class AuthService {
     const user = await this.usersService.findByEmail(loginDto.email);
 
     if (!user) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errors: {
-          email: 'notFound',
-        },
-      });
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isValidPassword = await bcrypt.compare(

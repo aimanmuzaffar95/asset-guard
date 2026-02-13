@@ -4,7 +4,6 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import {
   UnauthorizedException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../users/enums/user-roles.enum';
@@ -92,7 +91,7 @@ describe('AuthService', () => {
       expect(jwtService.signAsync).toHaveBeenCalled();
     });
 
-    it('should throw UnprocessableEntityException when user is not found', async () => {
+    it('should throw UnauthorizedException when user is not found', async () => {
       const loginDto = {
         email: 'nonexistent@example.com',
         password: 'password',
@@ -100,7 +99,7 @@ describe('AuthService', () => {
       usersService.findByEmail.mockResolvedValue(null);
 
       await expect(service.validateLogin(loginDto)).rejects.toThrow(
-        UnprocessableEntityException,
+        UnauthorizedException,
       );
     });
 
