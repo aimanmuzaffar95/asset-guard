@@ -9,6 +9,7 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 - **File Uploads**: Secure profile image upload using Supabase Storage.
 - **Authentication**: JWT-based auth with separate access and refresh tokens.
 - **Role-Based Access Control**: Secure endpoints with `@Admin` and `@Staff` decorators.
+- **Asset Types Management**: Dynamic management of asset categories (Admin only).
 - **User Management**: Registration and paginated user lists for administrators.
 - **API Documentation**: Interactive Swagger UI available at `/docs`.
 - **Quality Control**: Strict ESLint configuration with automated unused-import removal.
