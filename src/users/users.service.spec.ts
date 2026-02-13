@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { ILike } from 'typeorm';
+import { BadRequestException } from '@nestjs/common';
 
 const mockUser = {
   id: '550e8400-e29b-41d4-a716-446655440000',
@@ -47,6 +48,10 @@ describe('UsersService', () => {
   });
 
   describe('search', () => {
+    it('should throw BadRequestException for empty query', async () => {
+      await expect(service.search('   ')).rejects.toThrow(BadRequestException);
+    });
+
     it('should search by ID if valid UUID is provided', async () => {
       const uuid = '550e8400-e29b-41d4-a716-446655440000';
       repo.findOne.mockResolvedValue(mockUser);

@@ -11,6 +11,7 @@ import { CreateAssetDto } from './dtos/create-asset.dto';
 import { UpdateAssetDto } from './dtos/update-asset.dto';
 import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { UserEntity } from '../users/entities/user.entity';
+import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
 
 @Injectable()
 export class AssetsService {
@@ -21,9 +22,13 @@ export class AssetsService {
     private readonly assignmentRepo: Repository<AssetAssignmentEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(AssetTypeEntity)
+    private readonly assetTypeRepo: Repository<AssetTypeEntity>,
   ) {}
 
   async create(dto: CreateAssetDto): Promise<AssetEntity> {
+    await this.ensureAssetTypeExists(dto.assetTypeId);
+
     const existing = await this.assetRepo.findOne({
       where: { serialNumber: dto.serialNumber },
     });
@@ -61,6 +66,10 @@ export class AssetsService {
 
   async update(id: string, dto: UpdateAssetDto): Promise<AssetEntity> {
     const asset = await this.findOne(id);
+
+    if (dto.assetTypeId) {
+      await this.ensureAssetTypeExists(dto.assetTypeId);
+    }
 
     Object.assign(asset, dto);
     return await this.assetRepo.save(asset);
@@ -113,6 +122,12 @@ export class AssetsService {
   }
 
   async getAssetsByUser(userId: string): Promise<AssetAssignmentEntity[]> {
+    const user = await this.userRepo.findOneBy({ id: userId });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return this.assignmentRepo.find({
       where: { user: { id: userId }, returnedAt: IsNull() },
       relations: ['asset', 'asset.assetType'],
@@ -127,5 +142,12 @@ export class AssetsService {
       relations: ['user'],
       order: { assignedAt: 'DESC' },
     });
+  }
+
+  private async ensureAssetTypeExists(assetTypeId: string): Promise<void> {
+    const assetType = await this.assetTypeRepo.findOneBy({ id: assetTypeId });
+    if (!assetType) {
+      throw new NotFoundException('Asset type not found');
+    }
   }
 }

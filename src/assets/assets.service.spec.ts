@@ -4,14 +4,20 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { AssetEntity } from './entities/asset.entity';
 import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { UserEntity } from '../users/entities/user.entity';
+import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
 import { Repository } from 'typeorm';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('AssetsService', () => {
   let service: AssetsService;
   let assetRepo: jest.Mocked<Repository<AssetEntity>>;
   let assignmentRepo: jest.Mocked<Repository<AssetAssignmentEntity>>;
   let userRepo: jest.Mocked<Repository<UserEntity>>;
+  let assetTypeRepo: jest.Mocked<Repository<AssetTypeEntity>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +49,12 @@ describe('AssetsService', () => {
             findOneBy: jest.fn(),
           },
         },
+        {
+          provide: getRepositoryToken(AssetTypeEntity),
+          useValue: {
+            findOneBy: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -50,6 +62,7 @@ describe('AssetsService', () => {
     assetRepo = module.get(getRepositoryToken(AssetEntity));
     assignmentRepo = module.get(getRepositoryToken(AssetAssignmentEntity));
     userRepo = module.get(getRepositoryToken(UserEntity));
+    assetTypeRepo = module.get(getRepositoryToken(AssetTypeEntity));
   });
 
   it('should be defined', () => {
@@ -63,6 +76,9 @@ describe('AssetsService', () => {
         description: 'MacBook',
         assetTypeId: 'type-uuid-123',
       };
+      assetTypeRepo.findOneBy.mockResolvedValue({
+        id: dto.assetTypeId,
+      } as AssetTypeEntity);
       assetRepo.findOne
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: '1', ...dto } as unknown as AssetEntity);
@@ -87,9 +103,23 @@ describe('AssetsService', () => {
         description: 'MacBook',
         assetTypeId: 'type-uuid-123',
       };
+      assetTypeRepo.findOneBy.mockResolvedValue({
+        id: dto.assetTypeId,
+      } as AssetTypeEntity);
       assetRepo.findOne.mockResolvedValue({ id: '1' } as AssetEntity);
 
       await expect(service.create(dto)).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw NotFoundException if asset type does not exist', async () => {
+      const dto = {
+        serialNumber: 'SN123',
+        description: 'MacBook',
+        assetTypeId: 'missing-type',
+      };
+      assetTypeRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.create(dto)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -134,6 +164,16 @@ describe('AssetsService', () => {
 
       await expect(service.assignAsset(assetId, userId)).rejects.toThrow(
         BadRequestException,
+      );
+    });
+  });
+
+  describe('getAssetsByUser', () => {
+    it('should throw NotFoundException when user does not exist', async () => {
+      userRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.getAssetsByUser('missing-user')).rejects.toThrow(
+        NotFoundException,
       );
     });
   });

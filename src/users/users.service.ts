@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { ILike, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -63,21 +67,28 @@ export class UsersService {
   }
 
   async search(query: string): Promise<UserEntity[]> {
+    const sanitizedQuery = query?.trim();
+    if (!sanitizedQuery) {
+      throw new BadRequestException('Search query is required');
+    }
+
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        query,
+        sanitizedQuery,
       );
 
     if (isUUID) {
-      const user = await this.userRepo.findOne({ where: { id: query } });
+      const user = await this.userRepo.findOne({
+        where: { id: sanitizedQuery },
+      });
       return user ? [user] : [];
     }
 
     return await this.userRepo.find({
       where: [
-        { email: ILike(`%${query}%`) },
-        { firstName: ILike(`%${query}%`) },
-        { lastName: ILike(`%${query}%`) },
+        { email: ILike(`%${sanitizedQuery}%`) },
+        { firstName: ILike(`%${sanitizedQuery}%`) },
+        { lastName: ILike(`%${sanitizedQuery}%`) },
       ],
       take: 10,
     });
