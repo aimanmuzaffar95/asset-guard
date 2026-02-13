@@ -35,17 +35,22 @@ export class AssetsService {
     }
 
     const asset = this.assetRepo.create(dto);
-    return await this.assetRepo.save(asset);
+    const savedAsset = await this.assetRepo.save(asset);
+    return this.findOne(savedAsset.id);
   }
 
   async findAll(): Promise<AssetEntity[]> {
     return await this.assetRepo.find({
       order: { createdAt: 'DESC' },
+      relations: ['assetType'],
     });
   }
 
   async findOne(id: string): Promise<AssetEntity> {
-    const asset = await this.assetRepo.findOne({ where: { id } });
+    const asset = await this.assetRepo.findOne({
+      where: { id },
+      relations: ['assetType'],
+    });
 
     if (!asset) {
       throw new NotFoundException('Asset not found');
@@ -110,7 +115,7 @@ export class AssetsService {
   async getAssetsByUser(userId: string): Promise<AssetAssignmentEntity[]> {
     return this.assignmentRepo.find({
       where: { user: { id: userId }, returnedAt: IsNull() },
-      relations: ['asset'],
+      relations: ['asset', 'asset.assetType'],
     });
   }
 

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { StorageModule } from './storage/storage.module';
+import { AssetTypesModule } from './asset-types/asset-types.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -35,6 +37,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
     UsersModule,
     AuthModule,
     AssetsModule,
+    StorageModule,
+    AssetTypesModule,
   ],
   controllers: [AppController],
   providers: [

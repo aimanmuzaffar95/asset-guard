@@ -2,14 +2,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
-import { AssetType } from '../enum/asset-type.enum';
 import { AssetAssignmentEntity } from './asset-assignment.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { AssetTypeEntity } from '../../asset-types/entities/asset-type.entity';
 
 @Entity('assets')
 @Unique(['serialNumber'])
@@ -18,12 +20,15 @@ export class AssetEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ApiProperty({ enum: AssetType })
-  @Column({
-    type: 'enum',
-    enum: AssetType,
+  @ApiProperty({ type: () => AssetTypeEntity })
+  @ManyToOne(() => AssetTypeEntity, (assetType) => assetType.assets, {
+    nullable: false,
   })
-  type: AssetType;
+  @JoinColumn({ name: 'assetTypeId' })
+  assetType: AssetTypeEntity;
+
+  @Column({ name: 'assetTypeId' })
+  assetTypeId: string;
 
   @ApiProperty({ example: 'SN123456789' })
   @Column()
