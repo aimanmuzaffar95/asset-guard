@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger
 } from '@nestjs/common';
 import { ILike, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
