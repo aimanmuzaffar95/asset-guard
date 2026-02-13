@@ -8,12 +8,13 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 - **Asset Assignment**: Link assets to users with history tracking.
 - **File Uploads**: Secure profile image upload using Supabase Storage.
 - **Authentication**: JWT-based auth with separate access and refresh tokens.
+- **Secure Auth Errors**: Login returns a generic `Invalid credentials` message for both unknown email and wrong password.
 - **Role-Based Access Control**: Secure endpoints with `@Admin` and `@Staff` decorators.
 - **Asset Types Management**: Dynamic management of asset categories (Admin only).
-- **User Management**: Registration and paginated user lists for administrators.
+- **User Management**: Registration, paginated user lists, and validated search for administrators.
 - **API Documentation**: Interactive Swagger UI available at `/docs`.
 - **Quality Control**: Strict ESLint configuration with automated unused-import removal.
-- **Automated Testing**: 41 unit tests covering core services, guards, and shared infrastructure.
+- **Automated Testing**: 44 unit tests covering core services, guards, and shared infrastructure.
 - **CI/CD**: GitHub Actions to run linting and unit tests on every pull request.
 
 ## 🛠️ Prerequisites
@@ -39,7 +40,7 @@ npm install
 ### 3. Configure Environment Variables
 Create a `.env` file in the root directory and add the following variables:
 ```env
-DATABASE_URL=your_postgresql_url
+SUPABASE_DATABASE_URL=your_postgresql_url
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=1d
 JWT_REFRESH_EXPIRES_IN=7d
@@ -58,7 +59,11 @@ SUPABASE_STORAGE_SECRET_ACCESS_KEY=your-secret-key
 2. **Important**: Set the bucket to **Public** to allow profile image access.
 
 ### 5. Database Migrations
-Ensure your database is accessible. The application uses TypeORM with `synchronize: true` for development (defined in `AppModule`).
+Ensure your database is accessible. The application uses TypeORM with:
+- `synchronize: false`
+- `migrationsRun: true`
+
+This means schema changes are applied through migrations on startup.
 
 ## 🏃 Running the Application
 
