@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -59,6 +59,27 @@ export class UsersService {
     return await this.userRepo.find({
       skip,
       take,
+    });
+  }
+
+  async search(query: string): Promise<UserEntity[]> {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        query,
+      );
+
+    if (isUUID) {
+      const user = await this.userRepo.findOne({ where: { id: query } });
+      return user ? [user] : [];
+    }
+
+    return await this.userRepo.find({
+      where: [
+        { email: ILike(`%${query}%`) },
+        { firstName: ILike(`%${query}%`) },
+        { lastName: ILike(`%${query}%`) },
+      ],
+      take: 10,
     });
   }
 }

@@ -45,4 +45,21 @@ export class UsersController {
   ): Promise<UserEntity[]> {
     return await this.usersService.findAll(page);
   }
+
+  @ApiOperation({ summary: 'Search users by ID, email, or name' })
+  @ApiQuery({
+    name: 'q',
+    description: 'Search query (UUID for exact match, or text for fuzzy match)',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    type: [UserEntity],
+    description: 'Returns a list of matching users.',
+  })
+  @Admin()
+  @Get('search')
+  async search(@Query('q') query: string): Promise<UserEntity[]> {
+    return await this.usersService.search(query);
+  }
 }
