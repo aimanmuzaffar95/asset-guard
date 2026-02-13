@@ -6,7 +6,6 @@ import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { AssetType } from './enum/asset-type.enum';
 
 describe('AssetsService', () => {
   let service: AssetsService;
@@ -35,6 +34,7 @@ describe('AssetsService', () => {
             create: jest.fn(),
             save: jest.fn(),
             find: jest.fn(),
+            remove: jest.fn(),
           },
         },
         {
@@ -59,11 +59,13 @@ describe('AssetsService', () => {
   describe('create', () => {
     it('should create a new asset if serial number is unique', async () => {
       const dto = {
-        name: 'MacBook',
         serialNumber: 'SN123',
-        type: AssetType.LAPTOP,
+        description: 'MacBook',
+        assetTypeId: 'type-uuid-123',
       };
-      assetRepo.findOne.mockResolvedValue(null);
+      assetRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: '1', ...dto } as unknown as AssetEntity);
       assetRepo.create.mockReturnValue(dto as unknown as AssetEntity);
       assetRepo.save.mockResolvedValue({
         id: '1',
@@ -81,9 +83,9 @@ describe('AssetsService', () => {
 
     it('should throw ConflictException if serial number already exists', async () => {
       const dto = {
-        name: 'MacBook',
         serialNumber: 'SN123',
-        type: AssetType.LAPTOP,
+        description: 'MacBook',
+        assetTypeId: 'type-uuid-123',
       };
       assetRepo.findOne.mockResolvedValue({ id: '1' } as AssetEntity);
 
