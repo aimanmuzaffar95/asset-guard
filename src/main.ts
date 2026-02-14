@@ -5,9 +5,11 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/exception-filters/all-exceptions-filter';
 import { SuccessResponseInterceptor } from './common/interceptors/success-response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -44,6 +46,7 @@ async function bootstrap(): Promise<void> {
     ],
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = Number(configService.get<string>('PORT') || 3000);
+  await app.listen(port);
 }
 void bootstrap();

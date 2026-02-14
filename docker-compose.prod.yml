@@ -2,17 +2,15 @@ services:
   api:
     build:
       context: .
-      target: builder
-    image: assetguard-api:dev
-    container_name: assetguard-api
-    command: npm run start:dev
-    restart: unless-stopped
+    image: assetguard-api:latest
+    container_name: assetguard-api-prod
+    restart: always
     ports:
       - "3000:3000"
     env_file:
       - .env
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: ${PORT:-3000}
       SUPABASE_DATABASE_URL: ${SUPABASE_DATABASE_URL:?SUPABASE_DATABASE_URL is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
@@ -23,9 +21,6 @@ services:
       SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET:?SUPABASE_STORAGE_BUCKET is required}
       SUPABASE_STORAGE_ACCESS_KEY_ID: ${SUPABASE_STORAGE_ACCESS_KEY_ID:?SUPABASE_STORAGE_ACCESS_KEY_ID is required}
       SUPABASE_STORAGE_SECRET_ACCESS_KEY: ${SUPABASE_STORAGE_SECRET_ACCESS_KEY:?SUPABASE_STORAGE_SECRET_ACCESS_KEY is required}
-    volumes:
-      - .:/app
-      - api_node_modules:/app/node_modules
     healthcheck:
       test:
         [
@@ -34,10 +29,7 @@ services:
           "-e",
           "require('http').get('http://127.0.0.1:3000/docs',res=>process.exit(res.statusCode<500?0:1)).on('error',()=>process.exit(1))",
         ]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
-      start_period: 20s
-
-volumes:
-  api_node_modules:
+      retries: 5
+      start_period: 30s

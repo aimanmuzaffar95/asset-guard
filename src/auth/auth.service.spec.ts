@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRole } from '../users/enums/user-roles.enum';
 import { UserEntity } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
+import { ConfigService } from '@nestjs/config';
 
 jest.mock('bcrypt');
 
@@ -49,6 +50,16 @@ describe('AuthService', () => {
           provide: StorageService,
           useValue: {
             uploadFile: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn((key: string) => {
+              if (key === 'JWT_EXPIRES_IN') return '1d';
+              if (key === 'JWT_REFRESH_EXPIRES_IN') return '7d';
+              throw new Error(`Missing key: ${key}`);
+            }),
           },
         },
       ],

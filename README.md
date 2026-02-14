@@ -20,7 +20,7 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 ## 🛠️ Prerequisites
 
 - **Node.js**: Version 20 or higher.
-- **Database**: PostgreSQL (Supabase recommended).
+- **Database**: Supabase PostgreSQL URL (required).
 - **Storage**: Supabase Storage (S3-compatible bucket).
 - **Package Manager**: npm.
 
@@ -54,6 +54,21 @@ SUPABASE_STORAGE_ACCESS_KEY_ID=your-access-key
 SUPABASE_STORAGE_SECRET_ACCESS_KEY=your-secret-key
 ```
 
+This project does not run a local Postgres service in Docker. Both development and production use `SUPABASE_DATABASE_URL`.
+
+### Minimum Required Environment Variables
+
+- `PORT`
+- `SUPABASE_DATABASE_URL`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `JWT_REFRESH_EXPIRES_IN`
+- `SUPABASE_STORAGE_ENDPOINT`
+- `SUPABASE_STORAGE_REGION`
+- `SUPABASE_STORAGE_BUCKET`
+- `SUPABASE_STORAGE_ACCESS_KEY_ID`
+- `SUPABASE_STORAGE_SECRET_ACCESS_KEY`
+
 ### 4. Configure Supabase Storage
 1. Create a new bucket named `asset-guard` (or update `SUPABASE_STORAGE_BUCKET` in `.env`).
 2. **Important**: Set the bucket to **Public** to allow profile image access.
@@ -76,6 +91,18 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+```
+
+## 🐳 Docker Compose
+
+```bash
+# Development (hot reload, API only)
+cp .env.example .env
+docker compose up --build
+
+# Production-like stack (API only)
+cp .env.example .env
+docker compose -f docker-compose.prod.yml up --build -d
 ```
 
 ## 🧪 Documentation & Linting

@@ -9,6 +9,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
 import { UserRole } from '../users/enums/user-roles.enum';
 import { AuthRefreshDto } from './dtos/auth-refresh.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -16,9 +17,18 @@ export class AuthService {
     private usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly storageService: StorageService,
+    private readonly configService: ConfigService,
   ) {}
 
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
+    const jwtExpiresIn =
+      this.configService.getOrThrow<JwtSignOptions['expiresIn']>(
+        'JWT_EXPIRES_IN',
+      );
+    const jwtRefreshExpiresIn = this.configService.getOrThrow<
+      JwtSignOptions['expiresIn']
+    >('JWT_REFRESH_EXPIRES_IN');
+
     const user = await this.usersService.findByEmail(loginDto.email);
 
     if (!user) {
@@ -41,26 +51,30 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: (process.env.JWT_EXPIRES_IN ||
-        '1h') as JwtSignOptions['expiresIn'],
+      expiresIn: jwtExpiresIn,
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
-        '7d') as JwtSignOptions['expiresIn'],
+      expiresIn: jwtRefreshExpiresIn,
     });
 
     return {
       accessToken,
       refreshToken,
-      tokenExpires: isNaN(Number(process.env.JWT_EXPIRES_IN))
-        ? 86400
-        : Number(process.env.JWT_EXPIRES_IN),
+      tokenExpires: isNaN(Number(jwtExpiresIn)) ? 86400 : Number(jwtExpiresIn),
       user: user,
     };
   }
 
   async refreshToken(dto: AuthRefreshDto): Promise<LoginResponseDto> {
+    const jwtExpiresIn =
+      this.configService.getOrThrow<JwtSignOptions['expiresIn']>(
+        'JWT_EXPIRES_IN',
+      );
+    const jwtRefreshExpiresIn = this.configService.getOrThrow<
+      JwtSignOptions['expiresIn']
+    >('JWT_REFRESH_EXPIRES_IN');
+
     try {
       const payload = (await this.jwtService.verifyAsync(
         dto.refreshToken,
@@ -83,21 +97,19 @@ export class AuthService {
       };
 
       const accessToken = await this.jwtService.signAsync(newPayload, {
-        expiresIn: (process.env.JWT_EXPIRES_IN ||
-          '1h') as JwtSignOptions['expiresIn'],
+        expiresIn: jwtExpiresIn,
       });
 
       const refreshToken = await this.jwtService.signAsync(newPayload, {
-        expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
-          '7d') as JwtSignOptions['expiresIn'],
+        expiresIn: jwtRefreshExpiresIn,
       });
 
       return {
         accessToken,
         refreshToken,
-        tokenExpires: isNaN(Number(process.env.JWT_EXPIRES_IN))
+        tokenExpires: isNaN(Number(jwtExpiresIn))
           ? 86400
-          : Number(process.env.JWT_EXPIRES_IN),
+          : Number(jwtExpiresIn),
         user: user,
       };
     } catch {
