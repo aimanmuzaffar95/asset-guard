@@ -2,7 +2,7 @@ name: Lint
 
 on:
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
 
 jobs:
   lint:
@@ -21,5 +21,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run lint
-        run: npm run lint
+      - name: Run lint and generate JSON report
+        run: |
+          mkdir -p reports/lint
+          npm run lint:ci -- --format json --output-file reports/lint/eslint-results.json
+
+      - name: Upload lint artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports-${{ github.run_id }}
+          path: reports/lint
+          if-no-files-found: warn
+          retention-days: 14
