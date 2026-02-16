@@ -84,6 +84,25 @@ describe('AllExceptionsFilter', () => {
     );
   });
 
+  it('should map throttling errors to TOO_MANY_REQUESTS code and message', () => {
+    const error = new HttpException(
+      'ThrottlerException: Too Many Requests',
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+
+    filter.catch(error, mockArgumentsHost);
+
+    expect(mockStatus).toHaveBeenCalledWith(HttpStatus.TOO_MANY_REQUESTS);
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          messages: ['Too many requests'],
+          code: 'TOO_MANY_REQUESTS',
+        }) as unknown,
+      }),
+    );
+  });
+
   it('should handle unknown exception types', () => {
     filter.catch('unknown error', mockArgumentsHost);
 

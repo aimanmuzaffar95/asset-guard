@@ -9,12 +9,13 @@ Asset Guard is a robust asset management system built with [NestJS](https://gith
 - **File Uploads**: Secure profile image upload using Supabase Storage.
 - **Authentication**: JWT-based auth with separate access and refresh tokens.
 - **Secure Auth Errors**: Login returns a generic `Invalid credentials` message for both unknown email and wrong password.
+- **Smart Rate Limiting**: Global throttling with token-aware tracking and stricter limits for auth endpoints.
 - **Role-Based Access Control**: Secure endpoints with `@Admin` and `@Staff` decorators.
 - **Asset Types Management**: Dynamic management of asset categories (Admin only).
 - **User Management**: Registration, paginated user lists, and validated search for administrators.
 - **API Documentation**: Interactive Swagger UI available at `/docs`.
 - **Quality Control**: Strict ESLint configuration with automated unused-import removal.
-- **Automated Testing**: 44 unit tests covering core services, guards, and shared infrastructure.
+- **Automated Testing**: 47 unit tests covering core services, guards, and shared infrastructure.
 - **CI/CD**: GitHub Actions to run linting and unit tests on every pull request.
 
 ## 🛠️ Prerequisites
@@ -52,6 +53,16 @@ SUPABASE_STORAGE_REGION=your-region
 SUPABASE_STORAGE_BUCKET=your-bucket-name
 SUPABASE_STORAGE_ACCESS_KEY_ID=your-access-key
 SUPABASE_STORAGE_SECRET_ACCESS_KEY=your-secret-key
+
+# Throttling Configuration
+THROTTLE_TTL_MS=60000
+THROTTLE_LIMIT=60
+THROTTLE_AUTH_LOGIN_TTL_MS=60000
+THROTTLE_AUTH_LOGIN_LIMIT=5
+THROTTLE_AUTH_REFRESH_TTL_MS=60000
+THROTTLE_AUTH_REFRESH_LIMIT=20
+THROTTLE_AUTH_REGISTER_TTL_MS=60000
+THROTTLE_AUTH_REGISTER_LIMIT=3
 ```
 
 This project does not run a local Postgres service in Docker. Both development and production use `SUPABASE_DATABASE_URL`.
@@ -92,6 +103,20 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## 🚦 Rate Limiting
+
+The API uses `@nestjs/throttler` with a global guard (`SmartThrottlerGuard`) and endpoint-specific limits for auth flows. Limits are configurable via environment variables.
+
+- **Global limit**: `THROTTLE_LIMIT / THROTTLE_TTL_MS` (default `60 requests / 60 seconds`)
+- **Tracking strategy**: uses `token:<hash>` when a valid `Bearer` token is present.
+- **Tracking fallback**: uses `ip:<address>` when no valid bearer token is provided.
+- **Auth endpoint limits**:
+- `POST /auth/login`: `THROTTLE_AUTH_LOGIN_LIMIT / THROTTLE_AUTH_LOGIN_TTL_MS` (default `5 / 60s`)
+- `POST /auth/refresh`: `THROTTLE_AUTH_REFRESH_LIMIT / THROTTLE_AUTH_REFRESH_TTL_MS` (default `20 / 60s`)
+- `POST /auth/register`: `THROTTLE_AUTH_REGISTER_LIMIT / THROTTLE_AUTH_REGISTER_TTL_MS` (default `3 / 60s`)
+
+This setup ensures throttling applies before role checks and protects login/registration flows with tighter limits.
 
 ## 🐳 Docker Compose
 

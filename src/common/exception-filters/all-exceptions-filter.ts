@@ -40,6 +40,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       messages = ['Internal server error'];
     }
 
+    if (statusCode === 429) {
+      messages = ['Too many requests'];
+    }
+
     const code =
       statusCode === 404
         ? 'NOT_FOUND'
@@ -51,7 +55,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
               ? 'FORBIDDEN'
               : statusCode === 409
                 ? 'CONFLICT'
-                : 'INTERNAL_ERROR';
+                : statusCode === 429
+                  ? 'TOO_MANY_REQUESTS'
+                  : 'INTERNAL_ERROR';
 
     response.status(statusCode).json({
       success: false,
