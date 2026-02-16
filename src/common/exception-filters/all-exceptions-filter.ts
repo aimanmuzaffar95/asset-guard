@@ -40,7 +40,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       messages = ['Internal server error'];
     }
 
-    if (statusCode === HttpStatus.TOO_MANY_REQUESTS) {
+    if (statusCode === 429) {
       messages = ['Too many requests'];
     }
 
@@ -57,7 +57,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 ? 'CONFLICT'
                 : statusCode === 429
                   ? 'TOO_MANY_REQUESTS'
-                : 'INTERNAL_ERROR';
+                  : 'INTERNAL_ERROR';
 
     response.status(statusCode).json({
       success: false,
