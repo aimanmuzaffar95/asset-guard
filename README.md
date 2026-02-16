@@ -1,6 +1,6 @@
 # Asset Guard
 
-Asset Guard is a robust asset management system built with [NestJS](https://github.com/nestjs/nest). It features strict type safety, role-based access control (RBAC), and automated quality checks.
+Asset Guard is a robust asset management system built with [NestJS](https://github.com/nestjs/nest). It features strict type safety, role-based access control (RBAC), and automated quality checks. I built this project as part of learning backend development with Nest
 
 ## 🚀 Features
 
