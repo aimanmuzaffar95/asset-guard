@@ -6,10 +6,76 @@ import { AllExceptionsFilter } from './common/exception-filters/all-exceptions-f
 import { SuccessResponseInterceptor } from './common/interceptors/success-response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+
+const DEFAULT_CORS_ORIGINS = ['http://localhost:3000'];
+
+const parseCsvList = (value: string | undefined): string[] =>
+  (value ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+const parseBoolean = (value: string | undefined, fallback = false): boolean => {
+  if (value === undefined) {
+    return fallback;
+  }
+
+  return ['true', '1', 'yes', 'on'].includes(value.trim().toLowerCase());
+};
+
+const createCorsOptions = (configService: ConfigService): CorsOptions => {
+  const configuredOrigins = parseCsvList(
+    configService.get<string>('CORS_ALLOWED_ORIGINS'),
+  );
+  const allowCredentials = parseBoolean(
+    configService.get<string>('CORS_ALLOW_CREDENTIALS'),
+    false,
+  );
+  const allowedOrigins = new Set([
+    ...DEFAULT_CORS_ORIGINS,
+    ...configuredOrigins,
+  ]);
+  const hasExplicitOriginList = allowedOrigins.size > DEFAULT_CORS_ORIGINS.length;
+
+  return {
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (!hasExplicitOriginList && !allowCredentials) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} is not allowed by CORS`), false);
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Accept',
+      'Authorization',
+      'Content-Type',
+      'Origin',
+      'X-Requested-With',
+    ],
+    credentials: allowCredentials,
+    optionsSuccessStatus: 204,
+    preflightContinue: false,
+  };
+};
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  app.enableCors(createCorsOptions(configService));
 
   app.useGlobalPipes(
     new ValidationPipe({
