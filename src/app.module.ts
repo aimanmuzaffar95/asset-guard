@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SmartThrottlerGuard } from './common/throttle/smart-throttler.guard';
+import { AdminModule } from './admin/admin.module';
 
 const parsePositiveInt = (
   value: string | undefined,
@@ -66,6 +67,7 @@ const parsePositiveInt = (
     AssetsModule,
     StorageModule,
     AssetTypesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

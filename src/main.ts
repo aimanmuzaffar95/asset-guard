@@ -36,10 +36,11 @@ const createCorsOptions = (configService: ConfigService): CorsOptions => {
     ...DEFAULT_CORS_ORIGINS,
     ...configuredOrigins,
   ]);
-  const hasExplicitOriginList = allowedOrigins.size > DEFAULT_CORS_ORIGINS.length;
+  const hasExplicitOriginList =
+    allowedOrigins.size > DEFAULT_CORS_ORIGINS.length;
 
   return {
-    origin: (origin, callback) => {
+    origin: (origin, callback): void => {
       if (!origin) {
         callback(null, true);
         return;
