@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { UserEntity } from './entities/user.entity';
+import { UserResponseDto } from './dtos/user-response.dto';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -30,7 +30,7 @@ describe('UsersController', () => {
 
   describe('findAll', () => {
     it('should call service.findAll with correct page number', async () => {
-      const mockUsers = [{ id: '1', email: 'test@test.com' }] as UserEntity[];
+      const mockUsers = [{ id: '1', email: 'test@test.com', activeAssignmentsCount: 0 }] as UserResponseDto[];
       service.findAll.mockResolvedValue(mockUsers);
 
       const result = await controller.findAll(2);
@@ -41,7 +41,7 @@ describe('UsersController', () => {
     });
 
     it('should use default value of 1 for page if not provided by pipe logic (simulated)', async () => {
-      const mockUsers = [] as UserEntity[];
+      const mockUsers = [] as UserResponseDto[];
       service.findAll.mockResolvedValue(mockUsers);
 
       const result = await controller.findAll(1);

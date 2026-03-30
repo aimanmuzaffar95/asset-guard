@@ -14,7 +14,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { Admin } from '../auth/decorators/roles.decorator';
-import { UserEntity } from './entities/user.entity';
+import { UserResponseDto } from './dtos/user-response.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -31,7 +31,7 @@ export class UsersController {
   })
   @ApiResponse({
     status: 200,
-    type: [UserEntity],
+    type: [UserResponseDto],
     description: 'Returns a list of 10 users for the specified page.',
   })
   @ApiResponse({
@@ -42,7 +42,7 @@ export class UsersController {
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  ): Promise<UserEntity[]> {
+  ): Promise<UserResponseDto[]> {
     return await this.usersService.findAll(page);
   }
 
@@ -54,12 +54,12 @@ export class UsersController {
   })
   @ApiResponse({
     status: 200,
-    type: [UserEntity],
+    type: [UserResponseDto],
     description: 'Returns a list of matching users.',
   })
   @Admin()
   @Get('search')
-  async search(@Query('q') query: string): Promise<UserEntity[]> {
+  async search(@Query('q') query: string): Promise<UserResponseDto[]> {
     return await this.usersService.search(query);
   }
 }
