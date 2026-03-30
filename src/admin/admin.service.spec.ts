@@ -41,6 +41,7 @@ describe('AdminService', () => {
           provide: getRepositoryToken(AssetAssignmentEntity),
           useValue: {
             count: jest.fn(),
+            findAndCount: jest.fn(),
           },
         },
         {
@@ -156,5 +157,86 @@ describe('AdminService', () => {
       { category: 'Docking Stations', count: 1, percentage: 33 },
       { category: 'Keyboards', count: 2, percentage: 67 },
     ]);
+  });
+
+  it('should return paginated assignment history mapped for the dashboard', async () => {
+    const assignedAt = new Date('2026-03-30T10:15:00.000Z');
+    const returnedAt = new Date('2026-03-31T09:00:00.000Z');
+
+    assignmentRepo.findAndCount.mockResolvedValue([
+      [
+        {
+          assignedAt,
+          returnedAt: null,
+          asset: {
+            serialNumber: 'SN123',
+            description: 'MacBook Pro M2',
+            assetType: { name: 'Laptop' },
+          },
+          user: {
+            firstName: 'John',
+            lastName: 'Doe',
+          },
+        },
+        {
+          assignedAt: returnedAt,
+          returnedAt,
+          asset: {
+            serialNumber: 'SN456',
+            description: '  ',
+            assetType: { name: 'Monitor' },
+          },
+          user: {
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        },
+      ] as AssetAssignmentEntity[],
+      12,
+    ]);
+
+    const result = await service.getAssignmentHistory(2, 5);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(assignmentRepo.findAndCount).toHaveBeenCalledWith({
+      relations: ['asset', 'asset.assetType', 'user'],
+      order: { assignedAt: 'DESC' },
+      skip: 5,
+      take: 5,
+    });
+    expect(result).toEqual({
+      items: [
+        {
+          asset: 'SN123 - MacBook Pro M2',
+          assignedTo: 'John Doe',
+          date: assignedAt,
+          status: 'assigned',
+        },
+        {
+          asset: 'SN456 - Monitor',
+          assignedTo: 'Jane Smith',
+          date: returnedAt,
+          status: 'returned',
+        },
+      ],
+      page: 2,
+      limit: 5,
+      total: 12,
+      totalPages: 3,
+    });
+  });
+
+  it('should return empty assignment history when no records exist', async () => {
+    assignmentRepo.findAndCount.mockResolvedValue([[], 0]);
+
+    const result = await service.getAssignmentHistory(1, 5);
+
+    expect(result).toEqual({
+      items: [],
+      page: 1,
+      limit: 5,
+      total: 0,
+      totalPages: 0,
+    });
   });
 });
