@@ -17,7 +17,7 @@ const buildQbMock = (
     getMany: jest.Mock;
     getOne: jest.Mock;
   }> = {},
-) => {
+): Record<string, jest.Mock> => {
   const qb: Record<string, jest.Mock> = {
     loadRelationCountAndMap: jest.fn(),
     skip: jest.fn(),

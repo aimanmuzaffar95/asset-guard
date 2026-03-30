@@ -30,7 +30,9 @@ describe('UsersController', () => {
 
   describe('findAll', () => {
     it('should call service.findAll with correct page number', async () => {
-      const mockUsers = [{ id: '1', email: 'test@test.com', activeAssignmentsCount: 0 }] as UserResponseDto[];
+      const mockUsers = [
+        { id: '1', email: 'test@test.com', activeAssignmentsCount: 0 },
+      ] as UserResponseDto[];
       service.findAll.mockResolvedValue(mockUsers);
 
       const result = await controller.findAll(2);
