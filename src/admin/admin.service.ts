@@ -10,6 +10,10 @@ import {
   AssetDistributionItemDto,
 } from './dtos/admin-dashboard-response.dto';
 import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
+import {
+  AdminAssignmentHistoryItemDto,
+  AdminAssignmentHistoryResponseDto,
+} from './dtos/admin-assignment-history-response.dto';
 
 interface AssetDistributionRow {
   category: string;
@@ -70,6 +74,37 @@ export class AdminService {
         staffCount,
       },
       assetDistribution,
+    };
+  }
+
+  async getAssignmentHistory(
+    page: number,
+    limit: number,
+  ): Promise<AdminAssignmentHistoryResponseDto> {
+    const [assignments, total] = await this.assignmentRepo.findAndCount({
+      relations: ['asset', 'asset.assetType', 'user'],
+      order: { assignedAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      items: assignments.map<AdminAssignmentHistoryItemDto>((assignment) => {
+        const assetDescription =
+          assignment.asset.description?.trim() ||
+          assignment.asset.assetType.name;
+
+        return {
+          asset: `${assignment.asset.serialNumber} - ${assetDescription}`,
+          assignedTo: `${assignment.user.firstName} ${assignment.user.lastName}`,
+          date: assignment.assignedAt,
+          status: assignment.returnedAt ? 'returned' : 'assigned',
+        };
+      }),
+      page,
+      limit,
+      total,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
     };
   }
 }
