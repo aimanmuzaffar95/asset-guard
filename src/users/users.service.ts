@@ -3,12 +3,13 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './enums/user-roles.enum';
+import { UserResponseDto } from './dtos/user-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -55,18 +56,25 @@ export class UsersService {
     return entity;
   }
 
-  async findAll(page: number): Promise<UserEntity[]> {
+  async findAll(page: number): Promise<UserResponseDto[]> {
     const take = 10;
     const safePage = Math.max(1, page);
     const skip = (safePage - 1) * take;
 
-    return await this.userRepo.find({
-      skip,
-      take,
-    });
+    return this.userRepo
+      .createQueryBuilder('user')
+      .loadRelationCountAndMap(
+        'user.activeAssignmentsCount',
+        'user.assignments',
+        'assignment',
+        (qb) => qb.where('assignment.returnedAt IS NULL'),
+      )
+      .skip(skip)
+      .take(take)
+      .getMany() as Promise<UserResponseDto[]>;
   }
 
-  async search(query: string): Promise<UserEntity[]> {
+  async search(query: string): Promise<UserResponseDto[]> {
     const sanitizedQuery = query?.trim();
     if (!sanitizedQuery) {
       throw new BadRequestException('Search query is required');
@@ -77,20 +85,28 @@ export class UsersService {
         sanitizedQuery,
       );
 
+    const qb = this.userRepo
+      .createQueryBuilder('user')
+      .loadRelationCountAndMap(
+        'user.activeAssignmentsCount',
+        'user.assignments',
+        'assignment',
+        (qb) => qb.where('assignment.returnedAt IS NULL'),
+      );
+
     if (isUUID) {
-      const user = await this.userRepo.findOne({
-        where: { id: sanitizedQuery },
-      });
-      return user ? [user] : [];
+      const user = await qb
+        .where('user.id = :id', { id: sanitizedQuery })
+        .getOne();
+      return user ? [user as UserResponseDto] : [];
     }
 
-    return await this.userRepo.find({
-      where: [
-        { email: ILike(`%${sanitizedQuery}%`) },
-        { firstName: ILike(`%${sanitizedQuery}%`) },
-        { lastName: ILike(`%${sanitizedQuery}%`) },
-      ],
-      take: 10,
-    });
+    return qb
+      .where(
+        'user.email ILIKE :q OR user.firstName ILIKE :q OR user.lastName ILIKE :q',
+        { q: `%${sanitizedQuery}%` },
+      )
+      .take(10)
+      .getMany() as Promise<UserResponseDto[]>;
   }
 }
