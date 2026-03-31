@@ -10,6 +10,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './enums/user-roles.enum';
 import { UserResponseDto } from './dtos/user-response.dto';
+import { PaginatedUsersResponseDto } from './dtos/paginated-users-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -56,12 +57,12 @@ export class UsersService {
     return entity;
   }
 
-  async findAll(page: number): Promise<UserResponseDto[]> {
+  async findAll(page: number): Promise<PaginatedUsersResponseDto> {
     const take = 10;
     const safePage = Math.max(1, page);
     const skip = (safePage - 1) * take;
 
-    return this.userRepo
+    const [items, total] = await this.userRepo
       .createQueryBuilder('user')
       .loadRelationCountAndMap(
         'user.activeAssignmentsCount',
@@ -71,7 +72,16 @@ export class UsersService {
       )
       .skip(skip)
       .take(take)
-      .getMany() as Promise<UserResponseDto[]>;
+      .getManyAndCount();
+
+    const totalPages = total === 0 ? 0 : Math.ceil(total / take);
+
+    return {
+      items: items as UserResponseDto[],
+      currentPage: safePage,
+      totalPages,
+      hasNext: safePage < totalPages,
+    };
   }
 
   async search(query: string): Promise<UserResponseDto[]> {

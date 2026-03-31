@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { BadRequestException } from '@nestjs/common';
+import { PaginatedUsersResponseDto } from './dtos/paginated-users-response.dto';
 
 const mockUser = {
   id: '550e8400-e29b-41d4-a716-446655440000',
@@ -15,6 +16,7 @@ const mockUser = {
 const buildQbMock = (
   overrides: Partial<{
     getMany: jest.Mock;
+    getManyAndCount: jest.Mock;
     getOne: jest.Mock;
   }> = {},
 ): Record<string, jest.Mock> => {
@@ -24,6 +26,9 @@ const buildQbMock = (
     take: jest.fn(),
     where: jest.fn(),
     getMany: overrides.getMany ?? jest.fn().mockResolvedValue([mockUser]),
+    getManyAndCount:
+      overrides.getManyAndCount ??
+      jest.fn().mockResolvedValue([[mockUser], 21]),
     getOne: overrides.getOne ?? jest.fn().mockResolvedValue(null),
   };
 
@@ -84,7 +89,12 @@ describe('UsersService', () => {
       expect(qb.loadRelationCountAndMap).toHaveBeenCalled();
       expect(qb.skip).toHaveBeenCalledWith(0);
       expect(qb.take).toHaveBeenCalledWith(10);
-      expect(result).toEqual([mockUser]);
+      expect(result).toEqual<PaginatedUsersResponseDto>({
+        items: [mockUser],
+        currentPage: 1,
+        totalPages: 3,
+        hasNext: true,
+      });
     });
 
     it('should calculate correct skip for page 2', async () => {
@@ -94,6 +104,38 @@ describe('UsersService', () => {
       await service.findAll(2);
 
       expect(qb.skip).toHaveBeenCalledWith(10);
+    });
+
+    it('should return hasNext false on the last page', async () => {
+      const qb = buildQbMock({
+        getManyAndCount: jest.fn().mockResolvedValue([[mockUser], 20]),
+      });
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findAll(2);
+
+      expect(result).toEqual<PaginatedUsersResponseDto>({
+        items: [mockUser],
+        currentPage: 2,
+        totalPages: 2,
+        hasNext: false,
+      });
+    });
+
+    it('should return zero totalPages when there are no users', async () => {
+      const qb = buildQbMock({
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      });
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findAll(1);
+
+      expect(result).toEqual<PaginatedUsersResponseDto>({
+        items: [],
+        currentPage: 1,
+        totalPages: 0,
+        hasNext: false,
+      });
     });
   });
 

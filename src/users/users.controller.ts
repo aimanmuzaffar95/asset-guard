@@ -15,6 +15,7 @@ import {
 import { UsersService } from './users.service';
 import { Admin } from '../auth/decorators/roles.decorator';
 import { UserResponseDto } from './dtos/user-response.dto';
+import { PaginatedUsersResponseDto } from './dtos/paginated-users-response.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -31,8 +32,8 @@ export class UsersController {
   })
   @ApiResponse({
     status: 200,
-    type: [UserResponseDto],
-    description: 'Returns a list of 10 users for the specified page.',
+    type: PaginatedUsersResponseDto,
+    description: 'Returns a paginated list of 10 users for the specified page.',
   })
   @ApiResponse({
     status: 403,
@@ -42,7 +43,7 @@ export class UsersController {
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  ): Promise<UserResponseDto[]> {
+  ): Promise<PaginatedUsersResponseDto> {
     return await this.usersService.findAll(page);
   }
 
