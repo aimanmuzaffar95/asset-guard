@@ -6,9 +6,12 @@ import { AssetEntity } from '../assets/entities/asset.entity';
 import { AssetAssignmentEntity } from '../assets/entities/asset-assignment.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
+import { AssetsModule } from '../assets/assets.module';
+import { AdminAssetsController } from './admin-assets.controller';
 
 @Module({
   imports: [
+    AssetsModule,
     TypeOrmModule.forFeature([
       AssetEntity,
       AssetAssignmentEntity,
@@ -16,7 +19,7 @@ import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
       AssetTypeEntity,
     ]),
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, AdminAssetsController],
   providers: [AdminService],
 })
 export class AdminModule {}

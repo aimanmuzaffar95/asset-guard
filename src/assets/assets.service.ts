@@ -5,13 +5,20 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, QueryFailedError, Repository } from 'typeorm';
 import { AssetEntity } from './entities/asset.entity';
 import { CreateAssetDto } from './dtos/create-asset.dto';
 import { UpdateAssetDto } from './dtos/update-asset.dto';
 import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
+import { AssetStatus } from './enums/asset-status.enum';
+
+const UNIQUE_VIOLATION_ERROR_CODE = '23505';
+
+interface DatabaseErrorWithCode {
+  code?: unknown;
+}
 
 @Injectable()
 export class AssetsService {
@@ -27,20 +34,22 @@ export class AssetsService {
   ) {}
 
   async create(dto: CreateAssetDto): Promise<AssetEntity> {
-    await this.ensureAssetTypeExists(dto.assetTypeId);
+    const serialNumber = dto.serialNumber.trim();
+    const name = dto.name.trim();
+    const notes = this.normalizeNotes(dto.notes);
 
-    const existing = await this.assetRepo.findOne({
-      where: { serialNumber: dto.serialNumber },
+    await this.ensureAssetTypeExists(dto.assetTypeId);
+    await this.ensureSerialNumberIsUnique(serialNumber);
+
+    const asset = this.assetRepo.create({
+      name,
+      assetTypeId: dto.assetTypeId,
+      serialNumber,
+      notes,
+      status: AssetStatus.AVAILABLE,
     });
 
-    if (existing) {
-      throw new ConflictException(
-        'Asset with this serial number already exists',
-      );
-    }
-
-    const asset = this.assetRepo.create(dto);
-    const savedAsset = await this.assetRepo.save(asset);
+    const savedAsset = await this.saveAsset(asset);
     return this.findOne(savedAsset.id);
   }
 
@@ -71,8 +80,23 @@ export class AssetsService {
       await this.ensureAssetTypeExists(dto.assetTypeId);
     }
 
-    Object.assign(asset, dto);
-    return await this.assetRepo.save(asset);
+    const nextSerialNumber = dto.serialNumber?.trim() ?? asset.serialNumber;
+
+    if (nextSerialNumber !== asset.serialNumber) {
+      await this.ensureSerialNumberIsUnique(nextSerialNumber, asset.id);
+    }
+
+    const updatedAsset = this.assetRepo.create({
+      ...asset,
+      name: dto.name?.trim() ?? asset.name,
+      assetTypeId: dto.assetTypeId ?? asset.assetTypeId,
+      serialNumber: nextSerialNumber,
+      notes:
+        dto.notes !== undefined ? this.normalizeNotes(dto.notes) : asset.notes,
+    });
+
+    await this.saveAsset(updatedAsset);
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
@@ -104,7 +128,15 @@ export class AssetsService {
       user,
     });
 
-    return this.assignmentRepo.save(assignment);
+    const savedAssignment = await this.assignmentRepo.save(assignment);
+    await this.saveAsset(
+      this.assetRepo.create({
+        ...asset,
+        status: AssetStatus.ASSIGNED,
+      }),
+    );
+
+    return savedAssignment;
   }
 
   async unassignAsset(id: string): Promise<AssetAssignmentEntity> {
@@ -118,7 +150,16 @@ export class AssetsService {
     }
 
     activeAssignment.returnedAt = new Date();
-    return this.assignmentRepo.save(activeAssignment);
+    const updatedAssignment = await this.assignmentRepo.save(activeAssignment);
+
+    await this.saveAsset(
+      this.assetRepo.create({
+        ...activeAssignment.asset,
+        status: AssetStatus.AVAILABLE,
+      }),
+    );
+
+    return updatedAssignment;
   }
 
   async getAssetsByUser(userId: string): Promise<AssetAssignmentEntity[]> {
@@ -148,6 +189,54 @@ export class AssetsService {
     const assetType = await this.assetTypeRepo.findOneBy({ id: assetTypeId });
     if (!assetType) {
       throw new NotFoundException('Asset type not found');
+    }
+  }
+
+  private normalizeNotes(notes?: string | null): string | null {
+    if (typeof notes !== 'string') {
+      return null;
+    }
+
+    const trimmedNotes = notes.trim();
+    return trimmedNotes.length > 0 ? trimmedNotes : null;
+  }
+
+  private async ensureSerialNumberIsUnique(
+    serialNumber: string,
+    currentAssetId?: string,
+  ): Promise<void> {
+    const existingAsset = await this.assetRepo.findOne({
+      where: { serialNumber },
+    });
+
+    if (existingAsset && existingAsset.id !== currentAssetId) {
+      throw new ConflictException(
+        'Asset with this serial number already exists',
+      );
+    }
+  }
+
+  private async saveAsset(asset: AssetEntity): Promise<AssetEntity> {
+    try {
+      return await this.assetRepo.save(asset);
+    } catch (error: unknown) {
+      const driverError =
+        error instanceof QueryFailedError &&
+        typeof error.driverError === 'object' &&
+        error.driverError !== null
+          ? (error.driverError as DatabaseErrorWithCode)
+          : null;
+
+      if (
+        error instanceof QueryFailedError &&
+        driverError?.code === UNIQUE_VIOLATION_ERROR_CODE
+      ) {
+        throw new ConflictException(
+          'Asset with this serial number already exists',
+        );
+      }
+
+      throw error;
     }
   }
 }

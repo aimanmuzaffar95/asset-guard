@@ -11,6 +11,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { AssetStatus } from './enums/asset-status.enum';
 
 describe('AssetsService', () => {
   let service: AssetsService;
@@ -72,35 +73,50 @@ describe('AssetsService', () => {
   describe('create', () => {
     it('should create a new asset if serial number is unique', async () => {
       const dto = {
+        name: 'MacBook Pro 16-inch',
         serialNumber: 'SN123',
-        description: 'MacBook',
+        notes: 'Engineering device',
         assetTypeId: 'type-uuid-123',
       };
+      const persistedAsset = {
+        id: '1',
+        ...dto,
+        status: AssetStatus.AVAILABLE,
+        assetType: { id: dto.assetTypeId, name: 'laptop' },
+      } as unknown as AssetEntity;
+
       assetTypeRepo.findOneBy.mockResolvedValue({
         id: dto.assetTypeId,
       } as AssetTypeEntity);
       assetRepo.findOne
         .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({ id: '1', ...dto } as unknown as AssetEntity);
-      assetRepo.create.mockReturnValue(dto as unknown as AssetEntity);
-      assetRepo.save.mockResolvedValue({
-        id: '1',
+        .mockResolvedValueOnce(persistedAsset);
+      assetRepo.create.mockReturnValue({
         ...dto,
+        status: AssetStatus.AVAILABLE,
       } as unknown as AssetEntity);
+      assetRepo.save.mockResolvedValue(persistedAsset);
 
       const result = await service.create(dto);
 
-      expect(result).toEqual({ id: '1', ...dto });
+      expect(result).toEqual(persistedAsset);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(assetRepo.findOne).toHaveBeenCalledWith({
         where: { serialNumber: dto.serialNumber },
+      });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(assetRepo.create).toHaveBeenCalledWith({
+        ...dto,
+        notes: dto.notes,
+        status: AssetStatus.AVAILABLE,
       });
     });
 
     it('should throw ConflictException if serial number already exists', async () => {
       const dto = {
+        name: 'MacBook Pro 16-inch',
         serialNumber: 'SN123',
-        description: 'MacBook',
+        notes: 'Engineering device',
         assetTypeId: 'type-uuid-123',
       };
       assetTypeRepo.findOneBy.mockResolvedValue({
@@ -113,8 +129,9 @@ describe('AssetsService', () => {
 
     it('should throw NotFoundException if asset type does not exist', async () => {
       const dto = {
+        name: 'MacBook Pro 16-inch',
         serialNumber: 'SN123',
-        description: 'MacBook',
+        notes: 'Engineering device',
         assetTypeId: 'missing-type',
       };
       assetTypeRepo.findOneBy.mockResolvedValue(null);
@@ -127,10 +144,18 @@ describe('AssetsService', () => {
     it('should assign asset if user exists and asset is available', async () => {
       const assetId = 'asset-1';
       const userId = 'user-1';
-      const mockAsset = { id: assetId } as AssetEntity;
+      const mockAsset = {
+        id: assetId,
+        status: AssetStatus.AVAILABLE,
+      } as AssetEntity;
       const mockUser = { id: userId } as UserEntity;
 
       assetRepo.findOne.mockResolvedValue(mockAsset);
+      assetRepo.create.mockImplementation((value) => value as AssetEntity);
+      assetRepo.save.mockResolvedValue({
+        ...mockAsset,
+        status: AssetStatus.ASSIGNED,
+      } as AssetEntity);
       userRepo.findOneBy.mockResolvedValue(mockUser);
       assignmentRepo.findOne.mockResolvedValue(null);
       assignmentRepo.create.mockReturnValue({
@@ -150,6 +175,11 @@ describe('AssetsService', () => {
       expect(assignmentRepo.create).toHaveBeenCalledWith({
         asset: mockAsset,
         user: mockUser,
+      });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(assetRepo.save).toHaveBeenCalledWith({
+        ...mockAsset,
+        status: AssetStatus.ASSIGNED,
       });
     });
 
@@ -181,11 +211,21 @@ describe('AssetsService', () => {
   describe('unassignAsset', () => {
     it('should unassign an asset by setting returnedAt', async () => {
       const assetId = 'asset-1';
+      const asset = {
+        id: assetId,
+        status: AssetStatus.ASSIGNED,
+      } as AssetEntity;
       const mockAssignment = {
         id: 'assign-1',
         returnedAt: null,
+        asset,
       } as unknown as AssetAssignmentEntity;
       assignmentRepo.findOne.mockResolvedValue(mockAssignment);
+      assetRepo.create.mockImplementation((value) => value as AssetEntity);
+      assetRepo.save.mockResolvedValue({
+        ...asset,
+        status: AssetStatus.AVAILABLE,
+      } as AssetEntity);
       assignmentRepo.save.mockImplementation(async (a) =>
         Promise.resolve(a as AssetAssignmentEntity),
       );
@@ -195,6 +235,11 @@ describe('AssetsService', () => {
       expect(result.returnedAt).toBeInstanceOf(Date);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(assignmentRepo.save).toHaveBeenCalledWith(mockAssignment);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(assetRepo.save).toHaveBeenCalledWith({
+        ...asset,
+        status: AssetStatus.AVAILABLE,
+      });
     });
 
     it('should throw BadRequestException if asset is not assigned', async () => {

@@ -170,7 +170,7 @@ describe('AdminService', () => {
           returnedAt: null,
           asset: {
             serialNumber: 'SN123',
-            description: 'MacBook Pro M2',
+            name: 'MacBook Pro M2',
             assetType: { name: 'Laptop' },
           },
           user: {
@@ -183,7 +183,7 @@ describe('AdminService', () => {
           returnedAt,
           asset: {
             serialNumber: 'SN456',
-            description: '  ',
+            name: '  ',
             assetType: { name: 'Monitor' },
           },
           user: {

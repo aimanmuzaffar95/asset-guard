@@ -90,12 +90,11 @@ export class AdminService {
 
     return {
       items: assignments.map<AdminAssignmentHistoryItemDto>((assignment) => {
-        const assetDescription =
-          assignment.asset.description?.trim() ||
-          assignment.asset.assetType.name;
+        const assetName =
+          assignment.asset.name?.trim() || assignment.asset.assetType.name;
 
         return {
-          asset: `${assignment.asset.serialNumber} - ${assetDescription}`,
+          asset: `${assignment.asset.serialNumber} - ${assetName}`,
           assignedTo: `${assignment.user.firstName} ${assignment.user.lastName}`,
           date: assignment.assignedAt,
           status: assignment.returnedAt ? 'returned' : 'assigned',

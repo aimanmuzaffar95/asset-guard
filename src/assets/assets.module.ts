@@ -18,5 +18,6 @@ import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
   ],
   controllers: [AssetsController],
   providers: [AssetsService],
+  exports: [AssetsService],
 })
 export class AssetsModule {}
