@@ -48,7 +48,10 @@ export class AssetsController {
     return this.assetsService.getAssetsByUser(req.user.sub);
   }
 
-  @ApiOperation({ summary: 'Create a new asset' })
+  @ApiOperation({
+    summary:
+      'Create a new asset (legacy compatibility route, use POST /admin/assets for new integrations)',
+  })
   @ApiResponse({ status: 201, type: AssetEntity })
   @Admin()
   @Post()

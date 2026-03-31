@@ -1,7 +1,29 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { Transform, TransformFnParams } from 'class-transformer';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+const trimString = ({ value }: TransformFnParams): unknown =>
+  typeof value === 'string' ? value.trim() : value;
+
 export class UpdateAssetDto {
+  @ApiProperty({
+    example: 'Updated asset name',
+    description: 'Display name for the asset',
+    required: false,
+  })
+  @IsOptional()
+  @Transform(trimString)
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  name?: string;
+
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
     description: 'UUID of the asset type',
@@ -11,8 +33,18 @@ export class UpdateAssetDto {
   @IsUUID()
   assetTypeId?: string;
 
-  @ApiProperty({ example: 'Updated description', required: false })
+  @ApiProperty({ example: 'SN123456789', required: false })
   @IsOptional()
+  @Transform(trimString)
   @IsString()
-  description?: string;
+  @MinLength(1)
+  @MaxLength(100)
+  serialNumber?: string;
+
+  @ApiProperty({ example: 'Updated notes', required: false })
+  @IsOptional()
+  @Transform(trimString)
+  @IsString()
+  @MaxLength(1000)
+  notes?: string;
 }

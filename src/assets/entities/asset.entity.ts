@@ -12,6 +12,7 @@ import {
 import { AssetAssignmentEntity } from './asset-assignment.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { AssetTypeEntity } from '../../asset-types/entities/asset-type.entity';
+import { AssetStatus } from '../enums/asset-status.enum';
 
 @Entity('assets')
 @Unique(['serialNumber'])
@@ -30,13 +31,25 @@ export class AssetEntity {
   @Column({ name: 'assetTypeId' })
   assetTypeId: string;
 
+  @ApiProperty({ example: 'MacBook Pro 16-inch' })
+  @Column({ length: 255 })
+  name: string;
+
   @ApiProperty({ example: 'SN123456789' })
-  @Column()
+  @Column({ length: 100 })
   serialNumber: string;
 
-  @ApiProperty({ example: 'Macbook Pro M2', required: false })
-  @Column({ nullable: true })
-  description?: string;
+  @ApiProperty({ example: 'Optional maintenance notes', required: false })
+  @Column({ type: 'varchar', nullable: true, length: 1000 })
+  notes?: string | null;
+
+  @ApiProperty({ enum: AssetStatus, example: AssetStatus.AVAILABLE })
+  @Column({
+    type: 'enum',
+    enum: AssetStatus,
+    default: AssetStatus.AVAILABLE,
+  })
+  status: AssetStatus;
 
   @ApiProperty()
   @CreateDateColumn()
