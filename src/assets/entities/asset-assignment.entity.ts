@@ -21,7 +21,11 @@ export class AssetAssignmentEntity {
   @CreateDateColumn()
   assignedAt: Date;
 
-  @ApiProperty({ required: false, nullable: true, example: '2026-04-08T09:01:11.000Z' })
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    example: '2026-04-08T09:01:11.000Z',
+  })
   @Column({ type: 'timestamp', nullable: true })
   returnedAt: Date | null;
 
