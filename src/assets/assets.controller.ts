@@ -23,6 +23,7 @@ import { AssignAssetDto } from './dtos/assign-asset.dto';
 import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { Admin, Staff } from '../auth/decorators/roles.decorator';
 import { Request } from 'express';
+import { AssetInventoryItemDto } from './dtos/asset-inventory-item.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -60,10 +61,10 @@ export class AssetsController {
   }
 
   @ApiOperation({ summary: 'List all assets' })
-  @ApiResponse({ status: 200, type: [AssetEntity] })
+  @ApiResponse({ status: 200, type: [AssetInventoryItemDto] })
   @Admin()
   @Get()
-  findAll(): Promise<AssetEntity[]> {
+  findAll(): Promise<AssetInventoryItemDto[]> {
     return this.assetsService.findAll();
   }
 

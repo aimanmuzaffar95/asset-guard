@@ -21,9 +21,13 @@ export class AssetAssignmentEntity {
   @CreateDateColumn()
   assignedAt: Date;
 
-  @ApiProperty({ required: false })
-  @Column({ nullable: true })
-  returnedAt: Date;
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    example: '2026-04-08T09:01:11.000Z',
+  })
+  @Column({ type: 'timestamp', nullable: true })
+  returnedAt: Date | null;
 
   @ApiProperty({ type: () => UserEntity })
   @ManyToOne(() => UserEntity, (user) => user.assignments)
