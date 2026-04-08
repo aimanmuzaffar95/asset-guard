@@ -192,6 +192,7 @@ describe('AssetsService', () => {
           },
         },
       ]);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(assetRepo.find).toHaveBeenCalledWith({
         order: { createdAt: 'DESC' },
         relations: ['assetType', 'assignments', 'assignments.user'],

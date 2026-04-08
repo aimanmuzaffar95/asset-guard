@@ -76,6 +76,7 @@ describe('AssetsController', () => {
     const result = await controller.findAll();
 
     expect(result).toEqual(assets);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(assetsService.findAll).toHaveBeenCalled();
   });
 });
