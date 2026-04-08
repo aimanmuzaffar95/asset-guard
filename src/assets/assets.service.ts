@@ -13,6 +13,7 @@ import { AssetAssignmentEntity } from './entities/asset-assignment.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { AssetTypeEntity } from '../asset-types/entities/asset-type.entity';
 import { AssetStatus } from './enums/asset-status.enum';
+import { AssetInventoryItemDto } from './dtos/asset-inventory-item.dto';
 
 const UNIQUE_VIOLATION_ERROR_CODE = '23505';
 
@@ -53,10 +54,34 @@ export class AssetsService {
     return this.findOne(savedAsset.id);
   }
 
-  async findAll(): Promise<AssetEntity[]> {
-    return await this.assetRepo.find({
+  async findAll(): Promise<AssetInventoryItemDto[]> {
+    const assets = await this.assetRepo.find({
       order: { createdAt: 'DESC' },
-      relations: ['assetType'],
+      relations: ['assetType', 'assignments', 'assignments.user'],
+    });
+
+    return assets.map((asset) => {
+      const activeAssignment = asset.assignments.find(
+        (assignment) => assignment.returnedAt === null,
+      );
+
+      return {
+        id: asset.id,
+        name: asset.name,
+        serialNumber: asset.serialNumber,
+        status: asset.status,
+        notes: asset.notes ?? null,
+        createdAt: asset.createdAt,
+        updatedAt: asset.updatedAt,
+        assetType: {
+          id: asset.assetType.id,
+          name: asset.assetType.name,
+          description: asset.assetType.description ?? null,
+        },
+        assignedTo: activeAssignment
+          ? `${activeAssignment.user.firstName} ${activeAssignment.user.lastName}`
+          : null,
+      };
     });
   }
 

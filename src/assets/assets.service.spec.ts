@@ -12,6 +12,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AssetStatus } from './enums/asset-status.enum';
+import { AssetInventoryItemDto } from './dtos/asset-inventory-item.dto';
 
 describe('AssetsService', () => {
   let service: AssetsService;
@@ -137,6 +138,144 @@ describe('AssetsService', () => {
       assetTypeRepo.findOneBy.mockResolvedValue(null);
 
       await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should include the current assignee full name when an active assignment exists', async () => {
+      const createdAt = new Date('2026-04-01T00:00:00.000Z');
+      const updatedAt = new Date('2026-04-02T00:00:00.000Z');
+      const assets = [
+        {
+          id: 'asset-1',
+          name: 'MacBook Pro 16-inch',
+          serialNumber: 'SN123456789',
+          status: AssetStatus.ASSIGNED,
+          notes: 'Engineering device',
+          createdAt,
+          updatedAt,
+          assetType: {
+            id: 'type-1',
+            name: 'laptop',
+            description: 'Portable computers',
+          },
+          assignments: [
+            {
+              returnedAt: null,
+              user: {
+                firstName: 'John',
+                lastName: 'Doe',
+              },
+            },
+          ],
+        },
+      ] as AssetEntity[];
+
+      assetRepo.find.mockResolvedValue(assets);
+
+      const result = await service.findAll();
+
+      expect(result).toEqual<AssetInventoryItemDto[]>([
+        {
+          id: 'asset-1',
+          name: 'MacBook Pro 16-inch',
+          serialNumber: 'SN123456789',
+          status: AssetStatus.ASSIGNED,
+          notes: 'Engineering device',
+          createdAt,
+          updatedAt,
+          assignedTo: 'John Doe',
+          assetType: {
+            id: 'type-1',
+            name: 'laptop',
+            description: 'Portable computers',
+          },
+        },
+      ]);
+      expect(assetRepo.find).toHaveBeenCalledWith({
+        order: { createdAt: 'DESC' },
+        relations: ['assetType', 'assignments', 'assignments.user'],
+      });
+    });
+
+    it('should set assignedTo to null when no active assignment exists', async () => {
+      const createdAt = new Date('2026-04-01T00:00:00.000Z');
+      const updatedAt = new Date('2026-04-02T00:00:00.000Z');
+      const assets = [
+        {
+          id: 'asset-1',
+          name: 'MacBook Pro 16-inch',
+          serialNumber: 'SN123456789',
+          status: AssetStatus.AVAILABLE,
+          notes: null,
+          createdAt,
+          updatedAt,
+          assetType: {
+            id: 'type-1',
+            name: 'laptop',
+            description: null,
+          },
+          assignments: [],
+        },
+      ] as AssetEntity[];
+
+      assetRepo.find.mockResolvedValue(assets);
+
+      const result = await service.findAll();
+
+      expect(result).toEqual<AssetInventoryItemDto[]>([
+        {
+          id: 'asset-1',
+          name: 'MacBook Pro 16-inch',
+          serialNumber: 'SN123456789',
+          status: AssetStatus.AVAILABLE,
+          notes: null,
+          createdAt,
+          updatedAt,
+          assignedTo: null,
+          assetType: {
+            id: 'type-1',
+            name: 'laptop',
+            description: null,
+          },
+        },
+      ]);
+    });
+
+    it('should ignore returned assignments when deriving assignedTo', async () => {
+      const createdAt = new Date('2026-04-01T00:00:00.000Z');
+      const updatedAt = new Date('2026-04-02T00:00:00.000Z');
+      const assets = [
+        {
+          id: 'asset-1',
+          name: 'MacBook Pro 16-inch',
+          serialNumber: 'SN123456789',
+          status: AssetStatus.AVAILABLE,
+          notes: null,
+          createdAt,
+          updatedAt,
+          assetType: {
+            id: 'type-1',
+            name: 'laptop',
+            description: null,
+          },
+          assignments: [
+            {
+              returnedAt: new Date('2026-04-03T00:00:00.000Z'),
+              user: {
+                firstName: 'Past',
+                lastName: 'Assignee',
+              },
+            },
+          ],
+        },
+      ] as AssetEntity[];
+
+      assetRepo.find.mockResolvedValue(assets);
+
+      const result = await service.findAll();
+
+      expect(result[0]?.assignedTo).toBeNull();
     });
   });
 
